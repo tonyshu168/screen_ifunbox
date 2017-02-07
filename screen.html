@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		* {padding: 0; margin: 0; list-style: none; font-family: inherit;}
+		html,body {height: 100%; font-family: "微软雅黑"; font-size: 14px;}
+		body {background: #f3f6f9;}
+		.toggle {width: 74px; height: 34px; border-radius: 30px; background: #ddd; display: inline-block; vertical-align: middle; position: relative;
+			-webkit-transition: .2s all;
+			-o-transition: .2s all;
+			transition: .2s all;
+		}
+		.toggle:after {width: 30px; height: 30px; position: absolute; left: 2px; top: 2px; background: #fff; border-radius: 50%; content: "";
+			-webkit-transition: .2s all;
+			-o-transition: .2s all;
+			transition: .2s all;
+		}
+		.toggle.on {background: #3a90f5;}
+		.toggle.on:after {transform: translate(40px, 0);}
+	</style>
+</head>
+<body>
+
+<script>
+</script>
+
+<style>
+	.ib {display: inline-block;}
+	.flex {display: flex;}
+	.flex > * {display: block; flex: 1;}
+	#wrap {height: 100%; text-align: center;}
+	#wrap table {white-space: nowrap; width: 100%;}
+	#wrap table td {padding: 2px 0;}
+	#wrap table td:nth-child(2n-1) {width: 10px; text-align: right;}
+	#wrap .ib {height: 100%; vertical-align: top; position: relative;}
+	#wrap img {vertical-align: top; height: 100%;}
+	#wrap input[type=number],
+	#wrap input[type=text] {height: 34px; text-indent: 1em; border-radius: 4px; padding: 0; border: 1px solid #ccc; box-shadow: 0 0 3px rgba(0,0,0,.1) inset; width: 100%;}
+	#wrap .btn {height: 34px; background: #5cb85c; border: 1px solid #4cae4c; color: #fff; font-family: inherit; padding: 0 15px; border-radius: 4px; display: inline-block; vertical-align: middle; line-height: 34px; cursor: pointer; text-align: center;}
+	#wrap .fix-r {padding: 15px; position: absolute; left: calc(100% + 15px); top: 10px; background: #fff; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,.3); text-align: left; white-space: nowrap;}
+	#wrap .fix-r .label-text {margin: 10px 0 6px 0;}
+	#wrap .fix-r .label:first-child .label-text {margin-top: 0;}
+	#wrap .fix-r .flex._1 > div {padding-right: 10px;}
+	#wrap .fix-r .flex._1 > div:last-child {padding-right: 0;}
+	#wrap .inc-btns > div {margin-bottom: 10px;}
+	#wrap .inc-btns .btn {margin-bottom: 5px; min-width: 100px;}
+	#wrap .inc-btns .btns-single-click {margin-top: 10px; text-align:left;}
+	#wrap .inc-btns .btns-function {margin-top: 10px; text-align:left;}
+</style>
+<div id="wrap">
+	<div class="ib">
+		<img src="" alt="" id="screen-img">
+		<div class="fix-r">
+			<table>
+				<tr>
+					<td>输入内容：</td>
+					<td>
+						<input type="text" data-bind="输入内容" placeholder="输入内容">
+					</td>
+				</tr>
+				<tr>
+					<td>安装App：</td>
+					<td>
+						<input type="text" data-bind="安装App" placeholder="如：com.example.AppName">
+					</td>
+				</tr>
+				<tr>
+					<td>卸载App：</td>
+					<td>
+						<input type="text" data-bind="卸载App" placeholder="如：/var/mobile/Media/x/y/z.ipa">
+					</td>
+				</tr>
+				<tr>
+					<td>模拟GPS：</td>
+					<td>
+						<div class="flex _1">
+							<div>
+								<input type="number" placeholder="lat=22.55" gps="lat">
+							</div>
+							<div>
+								<input type="number" placeholder="long=114.1" gps="long">
+							</div>
+							<div>
+								<input type="number" placeholder="alt=1.0" gps="alt">
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>静音：</td>
+					<td>
+						<div class="toggle" data-toggle="静音"></div>
+					</td>
+				</tr>
+			</table>
+			<div class="inc-btns">
+				<div class="btns-single-click">
+					<span class="btn" data-command="home">home</span>
+					<span class="btn" data-command="volup">volup</span>
+					<span class="btn" data-command="voldown">voldown</span><br>
+					<span class="btn" data-command="lock">lock</span>
+					<span class="btn" data-command="power">power</span>
+					<span class="btn" data-command="play">play</span><br>
+					<span class="btn" data-command="ringer">ringer</span>
+					<span class="btn" data-command="enter">enter</span>
+					<span class="btn" data-command="backspace">backspace</span>
+				</div>
+				<div class="btns-function">
+					<span class="btn" data-command="开启服务">开启服务</span>
+					<span class="btn" data-command="关闭服务">关闭服务</span>
+					<span class="btn" data-command="重启手机">重启手机</span><br>
+					<span class="btn" data-command="杀掉后台进程">杀掉后台进程</span>
+					<span class="btn" data-command="全选">全选</span>
+					<span class="btn" data-command="双击home">双击home</span><br>
+					<span class="btn" data-command="锁屏">锁屏</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+var baseURL = 'http://192.168.1.192:55698'
+//var baseURL = 'http://127.0.0.1:55698'
+var jo = {
+	json2url: function(o) {
+		var arr = []
+		for (var key in o) {
+			o[key] && arr.push(key + '=' + o[key])
+		}
+		return arr.join('&')
+	},
+	get: function(url, data, fnSucc, fnFaild) {
+		var xhr = new XMLHttpRequest()
+		var sData = jo.json2url(data)
+		url = sData ? url + '?' + sData : url
+		xhr.open('GET', url, true)
+		xhr.send()
+		xhr.onload = function(e) {
+			var json
+			if(xhr.status >= 200 && xhr.status < 300 || xhr.status == 304) {
+				try {
+					json = JSON.parse(xhr.responseText)
+				} catch(e) {
+					json = xhr.responseText
+				}
+				fnSucc && fnSucc(json)
+			} else {
+				fnFaild && fnFaild()
+			}
+		}
+		xhr.onerror = fnFaild
+	},
+	jsonp: function(url, data, fnSucc, fnFaild) {
+		var cbName = data['?']
+		delete data['?']
+		data[cbName] = ('jsonp_' + Math.random()).replace('.', '')
+		var s = document.createElement('script')
+		s.src = url + '?' + jo.json2url(data)
+		window[cbName] = function(data) {
+			clear()
+		}
+		s.onload = clear
+		s.onerror = function() {
+			fnFaild && fnFaild()
+			clear()
+		}
+
+		function clear() {
+			window[cbName] = null
+			document.body.removeChild(s)
+		}
+		document.body.appendChild(s)
+	},
+	getPos: function(ele) {
+		var l = 0
+		var t = 0
+		var parent = ele
+		while(parent) {
+			l += parent.offsetLeft
+			t += parent.offsetTop
+			parent = parent.offsetParent
+		}
+		return {
+			l: l,
+			t: t
+		}
+	}
+}
+
+;[].slice.call(document.querySelectorAll('.toggle')).forEach(function(ele, idx) {
+	ele.onclick = function() {
+		this.classList.toggle('on')
+		this.ontoggle && this.ontoggle(this.classList.contains('on'))
+	}
+	ele.onselectstart = function() {
+		return false
+	}
+})
+
+function serverStart(cb) {
+	jo.get(baseURL + '/en', {
+		'cb': 'fewfw'
+	}, cb, function() {
+		if (jo.isServerStop) {
+			return
+		}
+		console.log('服务启动失败，5秒后尝试重新连接')
+		setTimeout(function() {
+			serverStart(cb)
+		}, 2000)
+	})
+}
+
+init()
+function init() {
+	serverStart(function() {
+		jo.get(baseURL + '/size', {}, function(size) {
+			var wrap = document.getElementById('wrap')
+			var screenImg = document.getElementById('screen-img')
+			var isLongTouch = false
+			var timerLongTouch = 0
+			var isMoved = false
+			var timerRefresh = 0
+
+			function getComputedSize(e) {
+				var pos = jo.getPos(screenImg)
+				var x = e.clientX - pos.l
+				var y = e.clientY - pos.t
+				var per = screenImg.offsetWidth / size.width
+				var json = {
+					x: x,
+					y: y,
+					per: per,
+					computedX: parseInt(x / per),
+					computedY: parseInt(y / per),
+				}
+				return json
+			}
+
+			screenImg.onmousedown = function(e) {
+				e.preventDefault()
+				var x1 = e.clientX
+				var y1 = e.clientY
+				isMoved = false
+				isLongTouch =false
+				clearTimeout(timerLongTouch)
+				timerLongTouch = setTimeout(function() {
+					isLongTouch = true
+					var _size = getComputedSize(e)
+					jo.get(baseURL + '/long', {
+						'p': _size.computedX + ',' + _size.computedY,
+					}, function() {
+						setImgSrc(600)
+					}, function() {
+						setImgSrc(600)
+					})
+				}, 800)
+				document.onmousemove = function(e) {
+					var x2 = e.clientX
+					var y2 = e.clientY
+					isMoved = Math.abs(x2 - x1) > 0 || Math.abs(y2 - y1) > 0
+					if (isMoved && timerLongTouch) {
+						clearTimeout(timerLongTouch)
+						timerLongTouch = 0
+					}
+				}
+				document.onmouseup = function(e) {
+					if (e.target.nodeName.toLowerCase() != 'img')
+						return
+					timerLongTouch && clearTimeout(timerLongTouch)
+					timerLongTouch = 0
+					var x2 = e.clientX
+					var y2 = e.clientY
+					if (!isMoved && !isLongTouch) {
+						screenImg._click && screenImg._click(e)
+					} else {
+						var pos1 = getComputedSize({
+							clientX: x1,
+							clientY: y1
+						})
+						var pos2 = getComputedSize({
+							clientX: x2,
+							clientY: y2
+						})
+						jo.get(baseURL + '/swap', {
+							'b': pos1.computedX + ',' + pos1.computedY + '&e=' + pos2.computedX + ',' + pos2.computedY
+						}, function() {
+							setImgSrc(600)
+						}, function() {
+							setImgSrc(600)
+						})
+					}
+				}
+			}
+
+			screenImg._click = function(e) {
+				var _size = getComputedSize(e)
+				jo.get(baseURL + '/single', {
+					'p': _size.computedX + ',' + _size.computedY,
+				}, function() {
+					setImgSrc(600)
+				}, function() {
+					setImgSrc(600)
+				})
+			}
+			function setImgSrc(timeOut) {
+				if (jo.isServerStop) 
+					return
+				timeOut = Number(timeOut) ? timeOut : 0
+				if (timeOut == 0) {
+					screenImg.src = baseURL + '/snap?t=' + Math.random()
+				} else {
+					clearTimeout(timerRefresh)
+					timerRefresh = setTimeout(setImgSrc, timeOut)
+				}
+			}
+			screenImg.onload = function() {
+				if (jo.isServerStop)
+					return
+				setImgSrc(1000)
+			}
+			screenImg.onerror = function() {
+				if (jo.isServerStop)
+					return
+				serverStart(setImgSrc)
+			}
+			screenImg.src = baseURL + '/snap'
+
+			// 右键点击，相当于点击home键
+			screenImg.oncontextmenu = function(e) {
+				e.preventDefault()
+				jo.get(baseURL + '/button', {
+					't': 'home'
+				}, function() {
+					setImgSrc(600)
+				}, function() {
+					setImgSrc(600)
+				})
+			}
+
+			// 输入内容
+			wrap.querySelectorAll('input[data-bind]').forEach(function(ele, idx) {
+				ele.oninput = function() {
+					this.timerInput && clearTimeout(this.timerInput)
+					this.timerInput = setTimeout(function() {
+						var dataItem = ({
+							'输入内容': {
+								'url': '/kybd',
+								"data": {'s': this.value}
+							},
+							'安装App': {
+								'url': '/install',
+								"data": {'pkg': this.value}
+							},
+							'卸载App': {
+								'url': '/uninstall',
+								"data": {'b': this.value}
+							},
+						})[this.getAttribute('data-bind')]
+						jo.get(baseURL + dataItem.url, dataItem.data, function() {
+							setImgSrc(600)
+						}, function() {
+							setImgSrc(600)
+						})
+					}.bind(this), 300)
+				}
+			})
+
+			;[].slice.call(document.querySelectorAll('[data-toggle]')).forEach(function(ele, idx) {
+				ele.ontoggle = function(isOn) {
+					var sToggle = this.getAttribute('data-toggle')
+					var dataItem = ({
+						'静音': {
+							'url': '/buttonset',
+							'data': {
+								't': 'ringer',
+								'on': isOn ? '1' : '0'
+							}
+						}
+					})[sToggle]
+					jo.get(baseURL + dataItem.url, dataItem.data, function() {
+						setImgSrc(600)
+					}, function() {
+						setImgSrc(600)
+					})
+				}
+			})
+
+			var gpsInput = [].slice.call(wrap.querySelectorAll('input[gps]'))
+			gpsInput.forEach(function(ele, idx) {
+				ele.oninput = function() {
+					clearTimeout(gpsInput.timerInput)
+					gpsInput.timerInput = setTimeout(function() {
+						var jsonData = {}
+						gpsInput.forEach(function(ele, idx) {
+							jsonData[ele.getAttribute('gps')] = ele.value
+						})
+						jo.get(baseURL + '/gps', jsonData, function() {
+							setImgSrc(600)
+						}, function() {
+							setImgSrc(600)
+						})
+					}.bind(this), 300)
+				}
+			})
+
+			var incBtns = wrap.querySelectorAll('.inc-btns')
+			var btnsSingleClick = wrap.querySelector('.btns-single-click')
+			var btnsFunction = wrap.querySelector('.btns-function')
+			incBtns.onselectstart = function(e) {
+				return false
+			}
+			btnsSingleClick.onclick = function(e) {
+				var sCommand = e.target.getAttribute('data-command')
+				sCommand && jo.get(baseURL + '/button', {
+					't': sCommand
+				}, function() {
+					setImgSrc(600)
+				}, function() {
+					setImgSrc(600)
+				})
+			}
+			btnsFunction.onclick = function(e) {
+				var sCommand = e.target.getAttribute('data-command')
+				if (!sCommand)
+					return
+				if (sCommand == '开启服务' && jo.isServerStop) {
+					jo.isServerStop = false
+					init()
+					return
+				}
+				if (sCommand == '关闭服务') {
+					jo.isServerStop = true
+					screenImg.onload = screenImg.onerror = null
+				}
+				var dataItem = ({
+					'关闭服务': {
+						'url': '/de',
+						'data': {},
+					},
+					'重启手机': {
+						'url': '/reboot',
+						'data': {},
+					},
+					'杀掉后台进程': {
+						'url': '/respring',
+						'data': {},
+					},
+					'全选': {
+						'url': '/ctrl',
+						'data': {
+							'k': 'a'
+						},
+					},
+					'双击home': {
+						'url': '/buttondbl',
+						'data': {
+							't': 'home'
+						},
+					},
+					'锁屏': {
+						'url': '/lock',
+						'data': {},
+					},
+				})[sCommand]
+				jo.get(baseURL + dataItem.url, dataItem.data, function() {
+					setImgSrc(600)
+				}, function() {
+					setImgSrc(600)
+				})
+			}
+		}, function() {
+			console.log('尺寸获取失败')
+		})
+	})
+}
+
+
+</script>
+
+</body>
+</html>

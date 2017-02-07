@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" href="css/all.css">
+</head>
+<body>
+
+<div id="app">
+	<img src="img/snap.png" class="screen-img" ondragstart="return false;">
+	<div class="ib" id="panel-ctrl">
+		<div class="space">
+			<div class="server-no">
+				<form id="form-start-server">
+					<table class="align" style="margin-bottom: 0;">
+						<tr>
+							<td>输入手机IP：</td>
+							<td>
+								<input type="text" class="form-control" placeholder="如：127.0.0.1" data-save='ip'>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>
+								<input type="submit" value="开启服务" class="btn btn-success">
+							</td>
+						</tr>
+					</table>
+				</form>
+			</div>
+			<div class="server-connected">
+				<table class="align">
+					<tbody>
+						<tr>
+							<td>输入内容：</td>
+							<td>
+								<input type="text" class="form-control" data-bind="输入内容" placeholder="输入内容">
+							</td>
+						</tr>
+						<tr>
+							<td>安装App：</td>
+							<td>
+								<input type="text" class="form-control" data-bind="安装App" placeholder="如：com.example.AppName">
+							</td>
+						</tr>
+						<tr>
+							<td>卸载App：</td>
+							<td>
+								<input type="text" class="form-control" data-bind="卸载App" placeholder="如：/var/mobile/Media/x/y/z.ipa">
+							</td>
+						</tr>
+						<tr>
+							<td>模拟GPS：</td>
+							<td>
+								<div class="flex _1">
+									<div>
+										<input type="number" class="form-control" placeholder="lat=22.55" gps="lat">
+									</div>
+									<div>
+										<input type="number" class="form-control" placeholder="long=114.1" gps="long">
+									</div>
+									<div>
+										<input type="number" class="form-control" placeholder="alt=1.0" gps="alt">
+									</div>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td>静音：</td>
+							<td>
+								<div class="toggle" data-toggle="静音"></div>
+							</td>
+						</tr>
+						<tr>
+							<td>实时桌面：</td>
+							<td>
+								<div class="toggle" data-toggle="实时桌面"></div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="btns">
+					<div class="group" bindding="phone-key">
+						<span class="btn btn-success" data-command="home">home</span>
+						<span class="btn btn-success" data-command="volup">volup</span>
+						<span class="btn btn-success" data-command="voldown">voldown</span><br>
+						<span class="btn btn-success" data-command="lock">lock</span>
+						<span class="btn btn-success" data-command="power">power</span>
+						<span class="btn btn-success" data-command="play">play</span><br>
+						<span class="btn btn-success" data-command="enter">enter</span>
+						<span class="btn btn-success" data-command="backspace">backspace</span>
+					</div>
+					<div class="group" bindding="phone-function">
+						<span class="btn btn-success" data-command="重启手机">重启手机</span>
+						<span class="btn btn-success" data-command="杀掉后台进程">杀掉后台进程</span>
+						<span class="btn btn-success" data-command="全选">全选</span><br>
+						<span class="btn btn-success" data-command="双击home">双击home</span>
+						<span class="btn btn-success" data-command="锁屏">锁屏</span>
+					</div>
+				</div>
+				<div>
+					<span class="btn btn-warning" id="btn-close-server">关闭服务</span>
+					<div class="alert alert-info" id="show-cur-dev" style="margin: 10px 0 0 0;"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="js/jq3.js"></script>
+<script>
+var jo = {
+	 baseURL: 'http://192.168.1.244:55698/',
+	//baseURL: 'http://127.0.0.1:55698/',
+	size: {},
+	isServerStop: false,
+	screenImg: $('#app .screen-img'),
+	timerFail: 0,
+	ajaxErr: function(isNoRestart) {
+		$("#app").find('.server-connected').hide().end().find('.server-no').show()
+		jo.size = {}
+		if (isNoRestart !== true) {
+			console.log('3秒后尝试重新开启服务')
+			clearTimeout(jo.timerFail)
+			jo.timerFail = setTimeout(jo.serverStart, 3000)
+		}
+	},
+	getComputedSize: function(e) {
+		var pos = jo.screenImg.offset()
+		var x = e.clientX - pos.left
+		var y = e.clientY - pos.top
+		var per = jo.screenImg[0].offsetWidth / jo.size.width
+		var json = {
+			x: x,
+			y: y,
+			per: per,
+			computedX: parseInt(x / per),
+			computedY: parseInt(y / per),
+		}
+		return json
+	},
+	setImgSrc: function() {
+		jo.screenImg[0].src = jo.baseURL + 'snap?t=' + Math.random()
+		console.log(jo.baseURL + "snap?t=" + Math.random())
+		if (jo.isInTime) 
+			return
+		var count = 0
+		/*
+		jo.screenImg.each(function() {
+			this.onload = function() {
+				this.style.width = 'auto'
+				this.style.width = this.offsetWidth + 'px'
+				setTimeout(function() {
+					count++
+					if (count > 6)
+						return
+					this.src = jo.baseURL + 'snap?t=' + Math.random()
+				}.bind(this), 100)
+			}
+		})
+		*/
+	},
+	serverStart: function(isNotice) {
+		$("#app").find('.server-connected').hide().end().find('.server-no').show()
+		if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(jo.ip)) {
+			isNotice && alert('ip格式不正确')
+			return
+		}
+		jo.baseURL = 'http://' + jo.ip + ':55698/'
+		$.get(jo.baseURL + 'en', {
+			'cb': 'fewfw'
+		}).done(function() {
+			$.get(jo.baseURL + 'info').done(function(size) {
+				jo.size = size
+				//console.log(size.udid)
+				$('#app').each(function() {
+					$(this).find('.server-connected').show().end().find('.server-no').hide()
+					$('#show-cur-dev').html('当前连接的设备为：' + jo.baseURL)
+				})
+				jo.setImgSrc()
+			})
+		})
+	}
+}
+
+jo.screenImg.each(function() {
+	this.onerror = function(e) {
+		if (jo.isServerStop) {
+			return
+		}
+		jo.serverStart()
+	}
+})
+
+/*setInterval(function() {
+	jo.screenImg.each(function() {
+		this.src = jo.baseURL + 'snap?t=' + Math.random()
+	})
+}, 5000)*/
+
+// 保存数据到localStorage
+$('input[data-save]').on('input', function() {
+	localStorage[$(this).attr('data-save')] = this.value
+}).each(function() {
+	this.value = localStorage[$(this).attr('data-save')] || ''
+})
+
+// 提交表单，开启服务
+$('#form-start-server').on('submit', function(e) {
+	e.preventDefault()
+	jo.ip = $(this).find('[data-save=ip]').val()
+	//jo.serverStart(!!e.originalEvent)
+	jo.serverStart(e.originalEvent)
+}).trigger('submit')
+
+// 操作面板，处理各种事件
+$('#panel-ctrl').on('click', function(e) {
+	$(e.target).closest('.toggle').toggleClass('on').each(function(e) {
+		this.ontoggle && this.ontoggle($(this).hasClass('on'))
+	}).end()
+	.closest('[bindding=phone-key]').each(function() {
+		var sCommand = $(e.target).attr('data-command')
+		sCommand && $.get(jo.baseURL + 'button', {
+			't': sCommand
+		}).done(jo.setImgSrc)
+	}).end().closest('[bindding=phone-function]').each(function() {
+		var sCommand = e.target.getAttribute('data-command')
+		if (!sCommand)
+			return
+		var dataItem = ({
+			'关闭服务': {
+				'url': 'de',
+				'data': {},
+			},
+			'重启手机': {
+				'url': 'reboot',
+				'data': {},
+			},
+			'杀掉后台进程': {
+				'url': 'respring',
+				'data': {},
+			},
+			'全选': {
+				'url': 'ctrl',
+				'data': {
+					'k': 'a'
+				},
+			},
+			'双击home': {
+				'url': 'buttondbl',
+				'data': {
+					't': 'home'
+				},
+			},
+			'锁屏': {
+				'url': 'lock',
+				'data': {},
+			},
+		})[sCommand]
+		if (!dataItem)
+			return
+		$.get(jo.baseURL + dataItem.url, dataItem.data).done(jo.setImgSrc)
+	})
+}).each(function() {
+	var panelCtrl = $(this)
+	panelCtrl.find('[data-bind]').on('input', function(e) {
+		if (jo.isServerStop)
+			return
+		this.timerInput && clearTimeout(this.timerInput)
+		this.timerInput = setTimeout(function() {
+			switch($(this).attr('data-bind')) {
+				case '输入内容':
+					$.get(jo.baseURL + 'ctrl', {
+						'k': 'a'
+					}).done(function() {
+						$.get(jo.baseURL + 'kybd', {
+							's': this.value
+						}).done(jo.setImgSrc)
+					}.bind(this))
+					break
+				case '安装App':
+					$.get(jo.baseURL + 'install', {
+						'pkg': this.value
+					}).done(jo.setImgSrc)
+					break
+				case '卸载App':
+					$.get(jo.baseURL + 'uninstall', {
+						'b': this.value
+					}).done(jo.setImgSrc)
+					break
+			}
+		}.bind(this), 500)
+	}).end().find('[gps]').on('input', function(e) {
+		if (jo.isServerStop)
+			return
+		this.timerInput && clearTimeout(this.timerInput)
+		this.timerInput = setTimeout(function() {
+			var isForbid = false
+			var jsonData = {}
+			$('input[gps]').each(function() {
+				if (!this.value) {
+					isForbid = true
+				}
+				jsonData[$(this).attr('gps')] = this.value
+			})
+			if (isForbid) 
+				return
+			$.get(jo.baseURL + 'gps', jsonData).done(jo.setImgSrc)
+		}.bind(this), 500)
+	}).end().find('[data-toggle=静音]').each(function() {
+		this.ontoggle = function() {
+			$.get(jo.baseURL + 'buttonset', {
+				't': 'ringer',
+				'on': $(this).hasClass('on') ? 1 : 0
+			}).done(jo.setImgSrc)
+		}
+	}).end().find('[data-toggle=实时桌面]').each(function() {
+		this.ontoggle = function(isOn) {
+			jo.isInTime = isOn
+			jo.screenImg.each(function() {
+				if (isOn) {
+					this.onload = function() {
+						this.style.width = 'auto'
+						this.style.width = this.offsetWidth + 'px'
+						setTimeout(function() {
+							this.src = jo.baseURL + 'snap?t=' + Math.random()
+						}.bind(this), 100)
+					}
+				} else {
+					this.onload = null
+				}
+				this.src = jo.baseURL + 'snap?t=' + Math.random()
+			})
+		}
+	})
+})
+
+jo.screenImg.each(function() {
+	var isMoved = false
+	this.onmousedown = function(e) {
+		if (jo.isServerStop)
+			return
+		var isLongTouch = false
+		var x1 = e.clientX
+		var y1 = e.clientY
+		var p1 = jo.getComputedSize(e)
+		var timerLongTouch = setTimeout(function() {
+			isLongTouch = true
+			var pos = jo.getComputedSize(e)
+			$.get(jo.baseURL + 'long', {
+				'p': p1.computedX + ',' + p1.computedY
+			}).done(jo.setImgSrc)
+		}, 800)
+		document.onmousemove = function(e) {
+			var x2 = e.clientX
+			var y2 = e.clientY
+			isMoved = isMoved || !!(x1 - x2 || y1 - y2)
+			if (isMoved) {
+				clearTimeout(timerLongTouch)
+				timerLongTouch = 0
+			}
+		}
+		document.onmouseup = function(e) {
+			this.onmousemove = this.onmouseup = null
+			var p3 = jo.getComputedSize(e)
+			console.log(isMoved)
+			if (isMoved) {
+				// 滑动操作
+				$.get(jo.baseURL + 'swap', {
+					'b': p1.computedX+','+p1.computedY,
+					'e': p3.computedX+','+p3.computedY,
+				}).done(jo.setImgSrc).fail(jo.serverStart)
+			} else {
+				if (!isLongTouch) {
+					$.get(jo.baseURL + 'single', {
+						'p': p1.computedX + ',' + p1.computedY
+					})
+				}
+			}
+		}
+	}
+})
+
+$('#btn-close-server').on('click', function(e) {
+	if (jo.isServerStop)
+		return
+	jo.isServerStop = true
+	$.get(jo.baseURL + 'de').done(function() {
+		delete localStorage.ip
+		jo.ajaxErr(true)
+	})
+})
+
+</script>
+
+</body>
+</html>
