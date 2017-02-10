@@ -173,7 +173,7 @@ var jo = {
 		}).done(function() {
 			$.get(jo.baseURL + 'info').done(function(size) {
 				jo.size = size
-				//console.log(size.udid)
+				console.log(size)
 				$('#app').each(function() {
 					$(this).find('.server-connected').show().end().find('.server-no').hide()
 					$('#show-cur-dev').html('当前连接的设备为：' + jo.baseURL)
